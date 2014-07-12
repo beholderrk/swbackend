@@ -1,12 +1,14 @@
 from django.conf.urls import url, patterns, include
-from api import EdgeResource, UserResource
+from api import EdgeResource, UserResource, CategoryResource, RequirementsResource
 
 
 edge_resource = EdgeResource()
 user_resource = UserResource()
+category_resource = CategoryResource()
 
 
 urlpatterns = patterns('',
     url(r'^api/', include(edge_resource.urls)),
     url(r'^api/', include(user_resource.urls)),
+    url(r'^api/', include(category_resource.urls)),
 )

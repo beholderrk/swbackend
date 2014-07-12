@@ -13,6 +13,7 @@ class Category(models.Model):
 class Requirements(models.Model):
     name = models.CharField(max_length=30, blank=True)
     value = models.CharField(max_length=30)
+    mode = models.CharField(max_length=30, default='rank')
     edge = models.ForeignKey('Edge', related_name='requirements')
 
     def __unicode__(self):
@@ -21,6 +22,7 @@ class Requirements(models.Model):
 
 class Edge(models.Model):
     name = models.CharField(max_length=30)
+    description = models.TextField(blank=True)
     category = models.ForeignKey('Category')
 
     def __unicode__(self):
