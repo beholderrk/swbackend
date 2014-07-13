@@ -9,7 +9,7 @@ from tastypie.http import HttpMethodNotAllowed, HttpAccepted
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource
 from tastypie import fields
-from tastypie.utils import dict_strip_unicode_keys
+from tastypie.utils import dict_strip_unicode_keys, trailing_slash
 from .models import Category, Edge, Requirements
 
 
@@ -76,6 +76,22 @@ class RequirementsResource(ModelResource):
         authorization = DjangoAuthorization()
         authentication = ApiKeyAuthentication()
 
+    def prepend_urls(self):
+        return [
+            url(r'^(?P<resource_name>%s)/values%s' % (self._meta.resource_name, trailing_slash()), self.wrap_view('values'), name="api_requirements_values"),
+        ]
+
+    def values(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        values = Requirements.objects.filter(mode='rank').values_list('value', flat=True).distinct()
+        values = [ {'name': value} for value in values ]
+
+        self.log_throttled_access(request)
+        return self.create_response(request, values)
+
 
 class EdgeResource(ModelResource):
     category = fields.ToOneField(CategoryResource, 'category', full=True)
@@ -89,11 +105,12 @@ class EdgeResource(ModelResource):
 
     def obj_create(self, bundle, **kwargs):
         reqres = RequirementsResource()
-        req_obj = Requirements.objects.filter(name=bundle.data['rank']['name']).get()
+        req_obj = Requirements.objects.filter(value=bundle.data['rank']['name']).get()
         req_bundle = reqres.build_bundle(obj=req_obj, request=bundle.request)
-        req_bundle = reqres.full_hydrate(req_bundle)
+        req_bundle = reqres.full_dehydrate(req_bundle)
         bundle.data['requirements'] = [req_bundle.data]
-        del bundle['rank']
+        print bundle.data
+        del bundle.data['rank']
         return super(EdgeResource, self).obj_create(bundle, **kwargs)
 
 
