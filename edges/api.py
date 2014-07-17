@@ -94,22 +94,25 @@ class RequirementsResource(ModelResource):
 
 
 class EdgeResource(ModelResource):
-    category = fields.ToOneField(CategoryResource, 'category', full=True)
-    requirements = fields.ToManyField(RequirementsResource, 'requirements', full=True)
+    category = fields.ToOneField(CategoryResource, 'category', readonly=True, full=True)
+    requirements = fields.ToManyField(RequirementsResource, 'requirements', readonly=True, full=True)
 
     class Meta:
         queryset = Edge.objects.all()
         resource_name = 'edges'
         authorization = DjangoAuthorization()
         authentication = ApiKeyAuthentication()
+        allowed_methods = ['get', 'delete', 'post', 'put', 'patch']
+        list_allowed_methods = ['get', 'post']
+        always_return_data = True
 
     def obj_create(self, bundle, **kwargs):
+        # todo: rewrite this logic to custom view with custom validation
         reqres = RequirementsResource()
-        req_obj = Requirements.objects.filter(value=bundle.data['rank']['name']).get()
+        req_obj = Requirements.objects.filter(value=bundle.data['rank']['name'])[0]
         req_bundle = reqres.build_bundle(obj=req_obj, request=bundle.request)
         req_bundle = reqres.full_dehydrate(req_bundle)
         bundle.data['requirements'] = [req_bundle.data]
-        print bundle.data
         del bundle.data['rank']
         return super(EdgeResource, self).obj_create(bundle, **kwargs)
 

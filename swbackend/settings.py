@@ -21,6 +21,7 @@ SECRET_KEY = '8upt*qtu2f#!226!_p1ktj!ba_#1)%cpl)zg8!fce_s&z@o$0g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TASTYPIE_FULL_DEBUG = True
 
 TEMPLATE_DEBUG = True
 
